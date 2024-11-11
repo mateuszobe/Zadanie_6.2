@@ -22,43 +22,41 @@ def execute_sql(conn, sql):
     except Error as e:
         print(e)
 
-# 3. Tworzenie tabel "projects" i "tasks":
-create_projects_sql = """
-CREATE TABLE IF NOT EXISTS projects (
+# 3. Tworzenie tabel "authors" i "books":
+create_authors_sql = """
+CREATE TABLE IF NOT EXISTS authors (
     id INTEGER PRIMARY KEY,
-    nazwa TEXT NOT NULL,
-    start_date TEXT,
-    end_date TEXT
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    birth_date TEXT
 );
 """
 
-create_tasks_sql = """
-CREATE TABLE IF NOT EXISTS tasks (
+create_books_sql = """
+CREATE TABLE IF NOT EXISTS books (
     id INTEGER PRIMARY KEY,
-    project_id INTEGER NOT NULL,
-    nazwa TEXT NOT NULL,
-    opis TEXT,
-    status TEXT NOT NULL,
-    start_date TEXT NOT NULL,
-    end_date TEXT NOT NULL,
-    FOREIGN KEY (project_id) REFERENCES projects (id)
+    author_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    genre TEXT,
+    publish_year INTEGER,
+    FOREIGN KEY (author_id) REFERENCES authors (id)
 );
 """
 
 # 4. Funkcje do dodawania danych do tabel:
-def add_project(conn, project):
-    """ Dodaje nowy projekt do tabeli 'projects' """
-    sql = '''INSERT INTO projects(nazwa, start_date, end_date) VALUES(?, ?, ?)'''
+def add_author(conn, author):
+    """ Dodaje nowego autora do tabeli 'authors' """
+    sql = '''INSERT INTO authors(first_name, last_name, birth_date) VALUES(?, ?, ?)'''
     cur = conn.cursor()
-    cur.execute(sql, project)
+    cur.execute(sql, author)
     conn.commit()
     return cur.lastrowid
 
-def add_task(conn, task):
-    """ Dodaje nowe zadanie do tabeli 'tasks' """
-    sql = '''INSERT INTO tasks(project_id, nazwa, opis, status, start_date, end_date) VALUES(?, ?, ?, ?, ?, ?)'''
+def add_book(conn, book):
+    """ Dodaje nową książkę do tabeli 'books' """
+    sql = '''INSERT INTO books(author_id, title, genre, publish_year) VALUES(?, ?, ?, ?)'''
     cur = conn.cursor()
-    cur.execute(sql, task)
+    cur.execute(sql, book)
     conn.commit()
     return cur.lastrowid
 
@@ -82,12 +80,12 @@ def select_where(conn, table, **query):
     return cur.fetchall()
 
 # 6. Funkcja do aktualizacji danych:
-def update_task(conn, task_id, **kwargs):
-    """ Aktualizuje zadanie na podstawie id """
+def update_book(conn, book_id, **kwargs):
+    """ Aktualizuje książkę na podstawie id """
     cur = conn.cursor()
     fields = ", ".join(f"{k}=?" for k in kwargs)
-    values = tuple(kwargs.values()) + (task_id,)
-    sql = f"UPDATE tasks SET {fields} WHERE id=?"
+    values = tuple(kwargs.values()) + (book_id,)
+    sql = f"UPDATE books SET {fields} WHERE id=?"
     cur.execute(sql, values)
     conn.commit()
 
@@ -107,38 +105,38 @@ def delete_where(conn, table, **query):
 
 # 8. Główna część programu:
 if __name__ == "__main__":
-    db_file = "database.db"
+    db_file = "library.db"
     conn = create_connection(db_file)
 
     if conn is not None:
         # Tworzenie tabel
-        execute_sql(conn, create_projects_sql)
-        execute_sql(conn, create_tasks_sql)
+        execute_sql(conn, create_authors_sql)
+        execute_sql(conn, create_books_sql)
 
-        # Dodawanie przykładowego projektu
-        project = ("Powtórka z angielskiego", "2020-05-11 00:00:00", "2020-05-13 00:00:00")
-        project_id = add_project(conn, project)
+        # Dodawanie przykładowego autora
+        author = ("J.K.", "Rowling", "1965-07-31")
+        author_id = add_author(conn, author)
 
-        # Dodawanie przykładowego zadania
-        task = (project_id, "Czasowniki regularne", "Zapamiętaj czasowniki ze strony 30", "started", "2020-05-11 12:00:00", "2020-05-11 15:00:00")
-        task_id = add_task(conn, task)
+        # Dodawanie przykładowej książki
+        book = (author_id, "Harry Potter and the Philosopher's Stone", "Fantasy", 1997)
+        book_id = add_book(conn, book)
 
-        # Pobieranie wszystkich projektów
-        print("Projekty:", select_all(conn, "projects"))
+        # Pobieranie wszystkich autorów
+        print("Autorzy:", select_all(conn, "authors"))
 
-        # Pobieranie wszystkich zadań
-        print("Zadania:", select_all(conn, "tasks"))
+        # Pobieranie wszystkich książek
+        print("Książki:", select_all(conn, "books"))
 
-        # Aktualizacja zadania
-        update_task(conn, task_id, status="ended", end_date="2020-05-11 15:30:00")
+        # Aktualizacja książki
+        update_book(conn, book_id, genre="Young Adult Fantasy")
 
-        # Pobieranie zadania po statusie
-        print("Zadania ze statusem 'ended':", select_where(conn, "tasks", status="ended"))
+        # Pobieranie książki po gatunku
+        print("Książki o gatunku 'Young Adult Fantasy':", select_where(conn, "books", genre="Young Adult Fantasy"))
 
-        # Usuwanie zadania
-        delete_where(conn, "tasks", id=task_id)
+        # Usuwanie książki
+        delete_where(conn, "books", id=book_id)
 
-        # Sprawdzenie, czy zadanie zostało usunięte
-        print("Wszystkie zadania po usunięciu:", select_all(conn, "tasks"))
+        # Sprawdzenie, czy książka została usunięta
+        print("Wszystkie książki po usunięciu:", select_all(conn, "books"))
 
         conn.close()
