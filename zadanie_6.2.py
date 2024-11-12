@@ -1,27 +1,6 @@
 import sqlite3
 from sqlite3 import Error
 
-# Instrukcje CREATE TABLE:
-create_authors_sql = """
-CREATE TABLE IF NOT EXISTS authors (
-    id INTEGER PRIMARY KEY,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    birth_date TEXT
-);
-"""
-
-create_books_sql = """
-CREATE TABLE IF NOT EXISTS books (
-    id INTEGER PRIMARY KEY,
-    author_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    genre TEXT,
-    publish_year INTEGER,
-    FOREIGN KEY (author_id) REFERENCES authors (id)
-);
-"""
-
 # 1. Funkcja do tworzenia połączenia z bazą danych:
 def create_connection(db_file):
     """ Tworzy połączenie z bazą danych SQLite """
@@ -107,6 +86,27 @@ def delete_where(conn, table, **query):
 if __name__ == "__main__":
     db_file = "library.db"
     conn = create_connection(db_file)
+
+    # Instrukcje CREATE TABLE:
+    create_authors_sql = """
+    CREATE TABLE IF NOT EXISTS authors (
+        id INTEGER PRIMARY KEY,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        birth_date TEXT
+    );
+    """
+
+    create_books_sql = """
+    CREATE TABLE IF NOT EXISTS books (
+        id INTEGER PRIMARY KEY,
+        author_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        genre TEXT,
+        publish_year INTEGER,
+        FOREIGN KEY (author_id) REFERENCES authors (id)
+    );
+    """
 
     if conn is not None:
         # Tworzenie tabel
