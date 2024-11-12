@@ -1,6 +1,27 @@
 import sqlite3
 from sqlite3 import Error
 
+# Instrukcje CREATE TABLE:
+create_authors_sql = """
+CREATE TABLE IF NOT EXISTS authors (
+    id INTEGER PRIMARY KEY,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    birth_date TEXT
+);
+"""
+
+create_books_sql = """
+CREATE TABLE IF NOT EXISTS books (
+    id INTEGER PRIMARY KEY,
+    author_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    genre TEXT,
+    publish_year INTEGER,
+    FOREIGN KEY (author_id) REFERENCES authors (id)
+);
+"""
+
 # 1. Funkcja do tworzenia połączenia z bazą danych:
 def create_connection(db_file):
     """ Tworzy połączenie z bazą danych SQLite """
@@ -21,27 +42,6 @@ def execute_sql(conn, sql):
         c.execute(sql)
     except Error as e:
         print(e)
-
-# 3. Tworzenie tabel "authors" i "books":
-create_authors_sql = """
-CREATE TABLE IF NOT EXISTS authors (
-    id INTEGER PRIMARY KEY,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    birth_date TEXT
-);
-"""
-
-create_books_sql = """
-CREATE TABLE IF NOT EXISTS books (
-    id INTEGER PRIMARY KEY,
-    author_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    genre TEXT,
-    publish_year INTEGER,
-    FOREIGN KEY (author_id) REFERENCES authors (id)
-);
-"""
 
 # 4. Funkcje do dodawania danych do tabel:
 def add_author(conn, author):
@@ -91,7 +91,7 @@ def update_book(conn, book_id, **kwargs):
 
 # 7. Funkcja do usuwania danych:
 def delete_where(conn, table, **query):
-    """ Usuwa dane z tabeli na podstawie zadanych kryteriów """
+    """ Usuwa dane z tabeli na podstawie żądanych kryteriów """
     cur = conn.cursor()
     qs = []
     values = ()
